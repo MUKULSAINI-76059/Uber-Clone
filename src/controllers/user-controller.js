@@ -77,7 +77,13 @@ async function loginUser(req,res){
 }
 
 
+//Get User Profile
+async function getUserProfile(req, res){
+    return res.status(200).json({message: "User profile retrieved successfully", user:req.user})
+    
+}
 
 
 
-module.exports = {registerUser, loginUser}
+
+module.exports = {registerUser, loginUser, getUserProfile}

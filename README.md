@@ -139,3 +139,60 @@ Invalid credentials:
   "message": "Internal server error"
 }
 ```
+
+## GET `/api/user/profile`
+
+Returns the logged-in user's profile.
+
+### Description
+This endpoint returns the authenticated user's information.
+
+### Request Headers
+- `Content-Type: application/json`
+
+### Authentication
+- Requires a valid JWT token in the `token` cookie
+
+### Request Body
+No request body is required.
+
+### Success Response
+**Status Code:** `200 OK`
+
+```json
+{
+  "message": "User profile retrieved successfully",
+  "user": {
+    "_id": "USER_ID",
+    "fullName": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com"
+  }
+}
+```
+
+### Error Responses
+
+**Status Code:** `401 Unauthorized`
+
+```json
+{
+  "message": "Access denied. No token provided."
+}
+```
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+**Status Code:** `500 Internal Server Error`
+
+```json
+{
+  "message": "Internal server error"
+}
+```
