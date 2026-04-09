@@ -1,6 +1,6 @@
 const userModel = require("../models/user-model")
-const cookieParser = require("cookie-parser")
 const {validationResult} = require("express-validator")
+const blacklistModel = require("../models/blacklistToken-model")
 
 //Register User
 async function registerUser(req, res){
@@ -33,9 +33,8 @@ async function registerUser(req, res){
         })
 
         //Generate JWT token and set cookie
-        await newUser.save()
         const token = newUser.generateAuthToken()
-        res.cookie("token", token, {httpOnly:true, secure:true, sameSite:"strict", maxAge:3600000})
+        res.cookie("token", token, {httpOnly:true, secure:process.env.NODE_ENV === "production", sameSite:"strict", maxAge:3600000})
         return res.status(201).json({message: "User registered successfully", token})
         
     } catch (error) {
@@ -68,7 +67,7 @@ async function loginUser(req,res){
 
         //Generate JWT token and set cookie
         const token = user.generateAuthToken()
-        res.cookie("token", token, {httpOnly:true, secure:true, sameSite:"strict", maxAge:3600000})
+        res.cookie("token", token, {httpOnly:true, secure:process.env.NODE_ENV === "production", sameSite:"strict", maxAge:3600000})
         return res.status(200).json({message: "User logged in successfully", token})
     } catch (error) {
         console.error("Error logging in user:", error);
@@ -84,6 +83,26 @@ async function getUserProfile(req, res){
 }
 
 
+//logout User
+async function logoutUser(req, res){
+   try{
+    //Get token from cookies
+    const token = req.cookies.token || req.header("Authorization")?.replace("Bearer ", "")
+    if(!token){
+        return res.status(400).json({message: "No token provided"})
+    }
+
+    //Blacklist the token
+    await blacklistModel.create({token})
+    
+    res.clearCookie("token", {httpOnly:true, secure:process.env.NODE_ENV === "production", sameSite:"strict"})
+    return res.status(200).json({message: "User logged out successfully"})
+   }catch (error) {
+    console.error("Error logging out user:", error);
+    res.status(500).json({message: "Internal server error"});
+   }
+}
 
 
-module.exports = {registerUser, loginUser, getUserProfile}
+
+module.exports = {registerUser, loginUser, getUserProfile, logoutUser}

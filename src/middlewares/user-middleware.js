@@ -1,13 +1,20 @@
 const userModel = require("../models/user-model")
 const jwt = require("jsonwebtoken")
+const blacklistModel = require("../models/blacklistToken-model")
 
 //Middleware to check if user is logged in
 async function isLoggedIn(req,res, next){
     try{
         //Check for token in cookies
-        const token = req.cookies.token
+        const token = req.cookies.token || req.header("Authorization")?.replace("Bearer ", "")
         if(!token){
             return res.status(401).json({message: "Access denied. No token provided."})
+        }
+
+        //Check if token is blacklisted
+        const blacklistedToken = await blacklistModel.findOne({token})
+        if(blacklistedToken){
+            return res.status(401).json({message: "Invalid token. Please log in again."})
         }
 
         //Verify token and attach user to request object
